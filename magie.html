@@ -1,8 +1,17 @@
+<!-- 
+  // 1. Appel du prénomparler(Allô! Bonjour ${prenomSpectateur}!);
+  // 2. Hésitation théâtrale de 3.5 secondessetTimeout(() => {parler("Attends un peu... Je ressens une drôle de connexion là...");
+  // 3. Révélation finale de la carte calée sur vos impulsionssetTimeout(() => {parler(La carte que tu as choisie... 
+       c'est le ${valeurChoisie} de ${familleChoisie}, c'est bien ça?);}, 3000);}, 3500);} 
+-->
+
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Indique à l'iPhone de masquer Safari une fois ajouté à l'écran d'accueil -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Téléphone</title>
@@ -32,13 +41,13 @@
         .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
 
-        /* ÉLÉMENT CRUCIAL : L'interrupteur invisible qui force l'iPhone à vibrer */
+        /* INTERRUPTEUR DE VIBRATION FORCE POUR IPHONE */
         .ios-vibrator { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <!-- Ce bouton caché va s'activer à répétition pour forcer le Taptic Engine d'Apple -->
+    <!-- L'interrupteur secret d'Apple cliqué par le code pour secouer le Taptic Engine -->
     <input type="checkbox" switch class="ios-vibrator" id="appleVibeTrigger">
 
     <div class="phone-screen" id="mainScreen">
@@ -57,6 +66,7 @@
                 <div class="icon-circle">👤</div>
                 <div class="btn-label">Contact</div>
             </div>
+            <!-- APPUYER ICI LANCE LES VIBRATIONS DE DÉCOMPTE -->
             <div class="btn-action" id="addCallBtn" onclick="demarrerTour()">
                 <div class="icon-circle" style="background-color: rgba(255,255,255,0.3);">➕</div>
                 <div class="btn-label" style="font-weight: bold;">Add Call</div>
@@ -87,15 +97,18 @@
     </div>
 
     <script>
-        const SEUIL_BRUIT = 0.06; 
+        // SEUIL DU MICROPHONE (0.05 = Très sensible, capte le moindre mot)
+        const SEUIL_BRUIT = 0.05; 
+
         const valeurs = ["As", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi"];
-        const familles = {"1": "Pique", "2": "Cœur", "3": "Trèfle", "4": "Carreau"};
+        const familles = ["Pique", "Cœur", "Trèfle", "Carreau"];
 
         let valeurChoisie = "";
         let familleChoisie = "";
         let audioContext, analyser, dataArray;
         let etape = 0; 
-        let intervaleVibration;
+        let indexActuel = 0;
+        let boucleInterval = null;
         let prenomSpectateur = "mon cher ami"; 
 
         async function verifierFichierPrenom() {
@@ -107,18 +120,15 @@
                 }
             } catch (err) { }
         }
-
         verifierFichierPrenom();
 
-        // NOUVEAU SYSTÈME DE VIBRATION FORCE POUR IPHONE (iOS 17 et plus)
-        function vibrer() {
-            // Déclencheur natif Apple (interrupteur haptique)
+        // COMMANDE DE VIBRATION SYNCHRONISÉE POUR IPHONE
+        function executerVibrationForcee() {
             const trigger = document.getElementById('appleVibeTrigger');
             if (trigger) {
-                trigger.click(); // Simule un clic matériel instantané
+                trigger.click(); // Clic matériel simulé qui secoue le téléphone
             }
-            // Secours Android au cas où
-            if (navigator.vibrate) { navigator.vibrate(100); }
+            if (navigator.vibrate) { navigator.vibrate(120); } // Secours Android
         }
 
         function parler(texte) {
@@ -133,17 +143,16 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
-                const source = object = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
+                audioContext.createMediaStreamSource(stream).connect(analyser);
                 analyser.fftSize = 256;
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
-                detecterBruitEnContinu();
+                detecterVoixEnContinu();
             } catch (err) {
-                alert("Microphone requis.");
+                alert("L'accès au microphone est obligatoire pour intercepter vos mots.");
             }
         }
 
-        function detecterBruitEnContinu() {
+        function detecterVoixEnContinu() {
             if (etape === 0 || etape >= 3) return;
             
             analyser.getByteFrequencyData(dataArray);
@@ -151,19 +160,23 @@
             for (let i = 0; i < dataArray.length; i++) { somme += dataArray[i]; }
             let volumeMoyen = somme / dataArray.length / 255;
 
+            // DÈS QUE VOUS PARLEZ, ON COUPE LA SÉQUENCE COURANTE IMMÉDIATEMENT
             if (volumeMoyen > SEUIL_BRUIT) {
-                vibrer(); // Petite vibration de retour
+                executerVibrationForcee(); // Petite vibration de confirmation haptique
+                
                 if (etape === 1) {
-                    clearInterval(intervaleVibration);
+                    clearInterval(boucleInterval);
+                    valeurChoisie = valeurs[indexActuel]; // Capture synchrone parfaite !
                     etape = 2;
-                    setTimeout(() => { lancerBoucleFamilles(); }, 1200); 
+                    setTimeout(() => { lancerBoucleFamilles(); }, 1200); // 1.2s de répit de mise en scène
                 } else if (etape === 2) {
-                    clearInterval(intervaleVibration);
+                    clearInterval(boucleInterval);
+                    familleChoisie = familles[indexActuel]; // Capture synchrone parfaite !
                     etape = 3;
                     executerDenouementVocal();
                 }
             }
-            if (etape < 3) { requestAnimationFrame(detecterBruitEnContinu); }
+            if (etape < 3) { requestAnimationFrame(detecterVoixEnContinu); }
         }
 
         function demarrerTour() {
@@ -174,45 +187,37 @@
             verifierFichierPrenom().then(() => {
                 initialiserMicro().then(() => {
                     etape = 1;
-                    let indexValeur = 0;
-                    valeurChoisie = valeurs[indexValeur];
-                    vibrer(); // Première vibration immédiate
+                    indexActuel = 0;
+                    
+                    // Première pulsation de décompte haptique immédiat (L'As)
+                    executerVibrationForcee(); 
 
-                    intervaleVibration = setInterval(() => {
-                        indexValeur++;
-                        if (indexValeur >= valeurs.length) indexValeur = 0;
-                        valeurChoisie = valeurs[indexValeur];
-                        vibrer(); // Pulsation toutes les secondes
-                    }, 1000);
+                    // Décompte de la 1ère séquence : 1 pulse par seconde
+                    boucleInterval = setInterval(() => {
+                        indexActuel++;
+                        if (indexActuel >= valeurs.length) indexActuel = 0;
+                        executerVibrationForcee();
+                    }, 1200); // Un rythme de 1.2s pour compter vos pulsations très confortablement
                 });
             });
         }
 
         function lancerBoucleFamilles() {
             if (etape !== 2) return;
-            let indexFamille = 1;
-            familleChoisie = familles[indexFamille.toString()];
-            vibrer();
+            indexActuel = 0;
+            
+            // Première pulsation haptique du deuxième décompte (Pique)
+            executerVibrationForcee();
 
-            intervaleVibration = setInterval(() => {
-                indexFamille++;
-                if (indexFamille > 4) indexFamille = 1;
-                familleChoisie = familles[indexFamille.toString()];
-                vibrer();
-            }, 1000);
+            // Décompte de la 2ème séquence : 1 pulse toutes les 1.2 seconde
+            boucleInterval = setInterval(() => {
+                indexActuel++;
+                if (indexActuel >= 4) indexActuel = 0;
+                executerVibrationForcee();
+            }, 1200); 
         }
 
         function executerDenouementVocal() {
             document.getElementById('statutAppel').innerText = "00:06";
-            parler(`Allô! Bonjour ${prenomSpectateur}!`);
+            
 
-            setTimeout(() => {
-                parler("Attends un peu... Je ressens une drôle de connexion là...");
-                setTimeout(() => {
-                    parler(`La carte que tu as choisie... c'est le ${valeurChoisie} de ${familleChoisie}, c'est bien ça?`);
-                }, 3000);
-            }, 3500);
-        }
-    </script>
-</body>
-</html>
