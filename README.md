@@ -4,7 +4,7 @@ Mike Mcberman
 
 ## Qui suis-je ?
 
-Je suis Mc, un passionné d'automatisation, d'analyse statistique et d'optimisation mathématique.
+Je suis Mike McBerman, un passionné d'automatisation, d'analyse statistique et d'optimisation mathématique.
 
 Si tu es arrivé ici, sache que tu entres dans un laboratoire vivant où les données, les probabilités et les feuilles de calcul sont transformées en outils concrets capables de prendre des décisions en temps réel.
 
