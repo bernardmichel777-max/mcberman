@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Balises Apple pour masquer l'interface de Safari une fois ajouté à l'écran d'accueil -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Téléphone</title>
@@ -33,12 +32,14 @@
         .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
 
-        .ios-haptic-trigger { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        /* ÉLÉMENT CRUCIAL : L'interrupteur invisible qui force l'iPhone à vibrer */
+        .ios-vibrator { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <input type="checkbox" class="ios-haptic-trigger" id="hapticSwitch">
+    <!-- Ce bouton caché va s'activer à répétition pour forcer le Taptic Engine d'Apple -->
+    <input type="checkbox" switch class="ios-vibrator" id="appleVibeTrigger">
 
     <div class="phone-screen" id="mainScreen">
         <div class="status-bar">
@@ -97,10 +98,9 @@
         let intervaleVibration;
         let prenomSpectateur = "mon cher ami"; 
 
-        // Récupération automatique et discrète du prénom sur le serveur
         async function verifierFichierPrenom() {
             try {
-                let reponse = await fetch('spect.txt?t=' + new Date().getTime()); // Évite les problèmes de mémoire cache
+                let reponse = await fetch('spect.txt?t=' + new Date().getTime());
                 if (reponse.ok) {
                     let texte = await reponse.text();
                     if(texte.trim() !== "") { prenomSpectateur = texte.trim(); }
@@ -108,19 +108,23 @@
             } catch (err) { }
         }
 
-        // Le téléphone écoute le fichier texte toutes les secondes en arrière-plan
-        setInterval(verifierFichierPrenom, 1000);
+        verifierFichierPrenom();
 
-        function vibrer(duree) {
-            if (navigator.vibrate) { navigator.vibrate(duree); }
-            const hapticElement = document.getElementById('hapticSwitch');
-            if (hapticElement) { hapticElement.checked = !hapticElement.checked; }
+        // NOUVEAU SYSTÈME DE VIBRATION FORCE POUR IPHONE (iOS 17 et plus)
+        function vibrer() {
+            // Déclencheur natif Apple (interrupteur haptique)
+            const trigger = document.getElementById('appleVibeTrigger');
+            if (trigger) {
+                trigger.click(); // Simule un clic matériel instantané
+            }
+            // Secours Android au cas où
+            if (navigator.vibrate) { navigator.vibrate(100); }
         }
 
         function parler(texte) {
             let parole = new SpeechSynthesisUtterance(texte);
-            parole.lang = 'fr-CA'; // Accent Canadien-Français forcé
-            parole.rate = 0.90;    // Rythme posé au téléphone
+            parole.lang = 'fr-CA'; 
+            parole.rate = 0.90;    
             window.speechSynthesis.speak(parole);
         }
 
@@ -129,7 +133,7 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
-                const source = audioContext.createMediaStreamSource(stream);
+                const source = object = audioContext.createMediaStreamSource(stream);
                 source.connect(analyser);
                 analyser.fftSize = 256;
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -148,7 +152,7 @@
             let volumeMoyen = somme / dataArray.length / 255;
 
             if (volumeMoyen > SEUIL_BRUIT) {
-                vibrer(80); 
+                vibrer(); // Petite vibration de retour
                 if (etape === 1) {
                     clearInterval(intervaleVibration);
                     etape = 2;
@@ -167,18 +171,20 @@
             document.getElementById('addCallBtn').style.opacity = "0.6";
             document.getElementById('statutAppel').innerText = "00:01"; 
             
-            initialiserMicro().then(() => {
-                etape = 1;
-                let indexValeur = 0;
-                valeurChoisie = valeurs[indexValeur];
-                vibrer(150); 
-
-                intervaleVibration = setInterval(() => {
-                    indexValeur++;
-                    if (indexValeur >= valeurs.length) indexValeur = 0;
+            verifierFichierPrenom().then(() => {
+                initialiserMicro().then(() => {
+                    etape = 1;
+                    let indexValeur = 0;
                     valeurChoisie = valeurs[indexValeur];
-                    vibrer(150); 
-                }, 1000);
+                    vibrer(); // Première vibration immédiate
+
+                    intervaleVibration = setInterval(() => {
+                        indexValeur++;
+                        if (indexValeur >= valeurs.length) indexValeur = 0;
+                        valeurChoisie = valeurs[indexValeur];
+                        vibrer(); // Pulsation toutes les secondes
+                    }, 1000);
+                });
             });
         }
 
@@ -186,34 +192,27 @@
             if (etape !== 2) return;
             let indexFamille = 1;
             familleChoisie = familles[indexFamille.toString()];
-            vibrer(150);
+            vibrer();
 
             intervaleVibration = setInterval(() => {
                 indexFamille++;
                 if (indexFamille > 4) indexFamille = 1;
                 familleChoisie = familles[indexFamille.toString()];
-                vibrer(150);
+                vibrer();
             }, 1000);
         }
 
         function executerDenouementVocal() {
             document.getElementById('statutAppel').innerText = "00:06";
-            
-            // Étape 1 : Salutation chaleureuse avec le prénom québécois
             parler(`Allô! Bonjour ${prenomSpectateur}!`);
 
-            // Étape 2 : Pause dramatique d'hésitation (3.5 secondes)
             setTimeout(() => {
                 parler("Attends un peu... Je ressens une drôle de connexion là...");
-                
-                // Étape 3 : Révélation finale de la carte
                 setTimeout(() => {
                     parler(`La carte que tu as choisie... c'est le ${valeurChoisie} de ${familleChoisie}, c'est bien ça?`);
                 }, 3000);
-
             }, 3500);
         }
     </script>
 </body>
 </html>
-
