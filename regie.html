@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Régie Secrète - Mentalisme</title>
+    <style>
+        body { font-family: sans-serif; background: #222; color: #fff; text-align: center; padding: 50px; }
+        input { padding: 10px; font-size: 18px; width: 250px; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px; }
+        .status { margin-top: 20px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <h2>Panneau de Contrôle Secret</h2>
+    <p>Entrez le prénom du prochain spectateur :</p>
+    <br>
+    <input type="text" id="prenomInput" placeholder="Ex: Michel">
+    <button onclick="sauvegarderPrenom()">Mettre à jour</button>
+    <div class="status" id="statusMsg"></div>
+
+    <script>
+        function sauvegarderPrenom() {
+            let prenom = document.getElementById('prenomInput').value.trim();
+            if(!prenom) return alert("Veuillez entrer un prénom.");
+            
+            // Crée un téléchargement automatique du fichier spect.txt en arrière-plan
+            let blob = new Blob([prenom], { type: 'text/plain' });
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'spect.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            document.getElementById('statusMsg').innerText = "Fichier 'spect.txt' généré ! Placez-le dans le dossier de votre serveur.";
+        }
+    </script>
+</body>
+</html>
