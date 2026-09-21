@@ -6,100 +6,61 @@
 -->
 
 
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Indique à l'iPhone de masquer Safari une fois ajouté à l'écran d'accueil -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Téléphone</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #000; overflow: hidden; }
-        
-        .phone-screen {
-            height: 100%; width: 100%; max-width: 450px; margin: 0 auto;
-            background: linear-gradient(to bottom, #605ee5 0%, #4b4bc9 40%, #3538ad 100%);
-            color: white; display: flex; flex-direction: column; justify-content: space-between;
-            padding: 60px 30px 50px 30px; position: relative;
-        }
-
+        .phone-screen { height: 100%; width: 100%; max-width: 450px; margin: 0 auto; background: linear-gradient(to bottom, #605ee5 0%, #4b4bc9 40%, #3538ad 100%); color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 60px 30px 50px 30px; position: relative; }
         .status-bar { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; padding: 0 10px; margin-bottom: 20px; }
         .call-info { text-align: center; margin-top: 20px; }
         .contact-name { font-size: 42px; font-weight: 400; margin-bottom: 8px; letter-spacing: 0.5px; }
         .call-status { font-size: 14px; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); letter-spacing: 2px; }
-
         .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 20px; margin: auto 0; padding: 0 10px; }
         .btn-action { display: flex; flex-direction: column; align-items: center; cursor: pointer; background: none; border: none; color: white; }
         .icon-circle { width: 68px; height: 68px; background-color: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 28px; }
         .btn-action:active .icon-circle { background-color: rgba(255, 255, 255, 0.4); }
         .btn-label { font-size: 13px; color: rgba(255, 255, 255, 0.9); }
-
         .bottom-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: auto; }
         .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
-
-        /* INTERRUPTEUR DE VIBRATION FORCE POUR IPHONE */
         .ios-vibrator { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <!-- L'interrupteur secret d'Apple cliqué par le code pour secouer le Taptic Engine -->
-    <input type="checkbox" switch class="ios-vibrator" id="appleVibeTrigger">
+    <input type="checkbox" class="ios-vibrator" id="appleVibeTrigger">
 
     <div class="phone-screen" id="mainScreen">
-        <div class="status-bar">
-            <div>12:35 PM</div>
-            <div>📶 🔋 97%</div>
-        </div>
-
+        <div class="status-bar"><div>12:35 PM</div><div>📶 🔋 97%</div></div>
         <div class="call-info">
             <div class="contact-name">Sister</div>
             <div class="call-status" id="statutAppel">CALLING..</div>
         </div>
-
         <div class="actions-grid">
-            <div class="btn-action">
-                <div class="icon-circle">👤</div>
-                <div class="btn-label">Contact</div>
-            </div>
-            <!-- APPUYER ICI LANCE LES VIBRATIONS DE DÉCOMPTE -->
+            <div class="btn-action"><div class="icon-circle">👤</div><div class="btn-label">Contact</div></div>
+            <!-- LE BOUTON DE DÉMARRAGE SÉCURISÉ -->
             <div class="btn-action" id="addCallBtn" onclick="demarrerTour()">
                 <div class="icon-circle" style="background-color: rgba(255,255,255,0.3);">➕</div>
                 <div class="btn-label" style="font-weight: bold;">Add Call</div>
             </div>
-            <div class="btn-action">
-                <div class="icon-circle">🎙️</div>
-                <div class="btn-label">Mute</div>
-            </div>
-            <div class="btn-action">
-                <div class="icon-circle">⏸️</div>
-                <div class="btn-label">Hold</div>
-            </div>
-            <div class="btn-action">
-                <div class="icon-circle">📹</div>
-                <div class="btn-label">Video Call</div>
-            </div>
-            <div class="btn-action">
-                <div class="icon-circle">⏺️</div>
-                <div class="btn-label">Record</div>
-            </div>
+            <div class="btn-action"><div class="icon-circle">🎙️</div><div class="btn-label">Mute</div></div>
+            <div class="btn-action"><div class="icon-circle">⏸️</div><div class="btn-label">Hold</div></div>
+            <div class="btn-action"><div class="icon-circle">📹</div><div class="btn-label">Video Call</div></div>
+            <div class="btn-action"><div class="icon-circle">⏺️</div><div class="btn-label">Record</div></div>
         </div>
-
-        <div class="bottom-controls">
-            <div class="bottom-side-icon">🔊</div>
-            <button class="btn-hangup">📞</button>
-            <div class="bottom-side-icon">⣿</div>
-        </div>
+        <div class="bottom-controls"><div class="bottom-side-icon">🔊</div><button class="btn-hangup">📞</button><div class="bottom-side-icon">⣿</div></div>
     </div>
 
     <script>
-        // SEUIL DU MICROPHONE (0.05 = Très sensible, capte le moindre mot)
         const SEUIL_BRUIT = 0.05; 
-
         const valeurs = ["As", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi"];
         const familles = ["Pique", "Cœur", "Trèfle", "Carreau"];
 
@@ -111,24 +72,17 @@
         let boucleInterval = null;
         let prenomSpectateur = "mon cher ami"; 
 
-        async function verifierFichierPrenom() {
-            try {
-                let reponse = await fetch('spect.txt?t=' + new Date().getTime());
-                if (reponse.ok) {
-                    let texte = await reponse.text();
-                    if(texte.trim() !== "") { prenomSpectateur = texte.trim(); }
-                }
-            } catch (err) { }
-        }
-        verifierFichierPrenom();
-
-        // COMMANDE DE VIBRATION SYNCHRONISÉE POUR IPHONE
+        // Fonction de vibration haptique iOS
         function executerVibrationForcee() {
             const trigger = document.getElementById('appleVibeTrigger');
-            if (trigger) {
-                trigger.click(); // Clic matériel simulé qui secoue le téléphone
-            }
-            if (navigator.vibrate) { navigator.vibrate(120); } // Secours Android
+            if (trigger) { trigger.click(); }
+            if (navigator.vibrate) { navigator.vibrate(100); }
+        }
+
+        // Activation forcée du moteur audio d'Apple au moment du clic
+        function forcerMoteurAudioApple() {
+            let declencheurMuet = new SpeechSynthesisUtterance("");
+            window.speechSynthesis.speak(declencheurMuet);
         }
 
         function parler(texte) {
@@ -139,39 +93,31 @@
         }
 
         async function initialiserMicro() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                audioContext.createMediaStreamSource(stream).connect(analyser);
-                analyser.fftSize = 256;
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                detecterVoixEnContinu();
-            } catch (err) {
-                alert("L'accès au microphone est obligatoire pour intercepter vos mots.");
-            }
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            audioContext.createMediaStreamSource(stream).connect(analyser);
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            detecterVoixEnContinu();
         }
 
         function detecterVoixEnContinu() {
             if (etape === 0 || etape >= 3) return;
-            
             analyser.getByteFrequencyData(dataArray);
-            let somme = 0;
-            for (let i = 0; i < dataArray.length; i++) { somme += dataArray[i]; }
+            let somme = 0; for (let i = 0; i < dataArray.length; i++) { somme += dataArray[i]; }
             let volumeMoyen = somme / dataArray.length / 255;
 
-            // DÈS QUE VOUS PARLEZ, ON COUPE LA SÉQUENCE COURANTE IMMÉDIATEMENT
             if (volumeMoyen > SEUIL_BRUIT) {
-                executerVibrationForcee(); // Petite vibration de confirmation haptique
-                
+                executerVibrationForcee();
                 if (etape === 1) {
                     clearInterval(boucleInterval);
-                    valeurChoisie = valeurs[indexActuel]; // Capture synchrone parfaite !
+                    valeurChoisie = valeurs[indexActuel]; 
                     etape = 2;
-                    setTimeout(() => { lancerBoucleFamilles(); }, 1200); // 1.2s de répit de mise en scène
+                    setTimeout(() => { lancerBoucleFamilles(); }, 1200); 
                 } else if (etape === 2) {
                     clearInterval(boucleInterval);
-                    familleChoisie = familles[indexActuel]; // Capture synchrone parfaite !
+                    familleChoisie = familles[indexActuel]; 
                     etape = 3;
                     executerDenouementVocal();
                 }
@@ -181,43 +127,63 @@
 
         function demarrerTour() {
             if (etape > 0) return;
+            
+            // ÉTAPE CRUCIALE POUR IPHONE : On débloque l'audio sur le clic du doigt
+            forcerMoteurAudioApple();
+            
             document.getElementById('addCallBtn').style.opacity = "0.6";
             document.getElementById('statutAppel').innerText = "00:01"; 
             
-            verifierFichierPrenom().then(() => {
-                initialiserMicro().then(() => {
-                    etape = 1;
-                    indexActuel = 0;
+            // Lance la récupération du prénom en parallèle
+            fetch('spect.txt?t=' + new Date().getTime())
+                .then(res => res.ok ? res.text() : "mon cher ami")
+                .then(texte => {
+                    if(texte.trim() !== "") prenomSpectateur = texte.trim();
                     
-                    // Première pulsation de décompte haptique immédiat (L'As)
-                    executerVibrationForcee(); 
+                    // Une fois le texte validé, on ouvre le micro et on démarre les vibrations
+                    initialiserMicro().then(() => {
+                        etape = 1;
+                        indexActuel = 0;
+                        executerVibrationForcee(); 
 
-                    // Décompte de la 1ère séquence : 1 pulse par seconde
-                    boucleInterval = setInterval(() => {
-                        indexActuel++;
-                        if (indexActuel >= valeurs.length) indexActuel = 0;
-                        executerVibrationForcee();
-                    }, 1200); // Un rythme de 1.2s pour compter vos pulsations très confortablement
+                        boucleInterval = setInterval(() => {
+                            indexActuel++;
+                            if (indexActuel >= valeurs.length) indexActuel = 0;
+                            executerVibrationForcee();
+                        }, 1200); 
+                    });
+                }).catch(() => {
+                    // Secours si internet coupe
+                    initialiserMicro().then(() => {
+                        etape = 1; indexActuel = 0; executerVibrationForcee();
+                        boucleInterval = setInterval(() => { indexActuel++; if (indexActuel >= valeurs.length) indexActuel = 0; executerVibrationForcee(); }, 1200);
+                    });
                 });
-            });
         }
 
         function lancerBoucleFamilles() {
             if (etape !== 2) return;
             indexActuel = 0;
-            
-            // Première pulsation haptique du deuxième décompte (Pique)
             executerVibrationForcee();
-
-            // Décompte de la 2ème séquence : 1 pulse toutes les 1.2 seconde
             boucleInterval = setInterval(() => {
-                indexActuel++;
-                if (indexActuel >= 4) indexActuel = 0;
+                indexActuel++; if (indexActuel >= 4) indexActuel = 0;
                 executerVibrationForcee();
             }, 1200); 
         }
 
         function executerDenouementVocal() {
             document.getElementById('statutAppel').innerText = "00:06";
+            parler(`Allô! Bonjour ${prenomSpectateur}!`);
+            setTimeout(() => {
+                parler("Attends un peu... Je ressens une drôle de connexion là...");
+                setTimeout(() => {
+                    parler(`La carte que tu as choisie... c'est le ${valeurChoisie} de ${familleChoisie}, c'est bien ça?`);
+                }, 3000);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
+
             
 
