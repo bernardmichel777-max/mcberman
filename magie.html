@@ -1,9 +1,11 @@
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Call the Wizard - Version Automatique</title>
+  <title>Call the Wizard - Simulateur iOS</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -20,56 +22,95 @@
       min-height: 100vh;
     }
 
-    /* CONTENEUR DU TÉLÉPHONE AVEC VOTRE PHOTO DE BASE PAR DÉFAUT */
+    /* =========================================
+       TÉLÉPHONE
+       ========================================= */
+
     .phone-container {
       width: 375px;
       height: 812px;
-      background-image: url('fond-iphone.png');
+
+      /* PHOTO FOND IPHONE */
+      background-image: url("fond-iphone.png");
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
+
       position: relative;
       border-radius: 40px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       overflow: hidden;
     }
 
-    /* AFFICHAGE REQUIS DE LA VERSION EN HAUT À GAUCHE (SOUS L'OPÉRATEUR) */
+    /* =========================================
+       NUMÉRO DE VERSION
+       ========================================= */
+
     .app-version {
       position: absolute;
       top: 52px;
       left: 20px;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.7);
+
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
       font-weight: bold;
+
       z-index: 999;
-      font-family: monospace;
+
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
-    /* ZONE CLIQUABLE ET INVISIBLE PAR-DESSUS LE BOUTON D'APPEL DE VOTRE PHOTO */
+    /* =========================================
+       ZONE INVISIBLE DU BOUTON APPEL
+       ========================================= */
+
     .invisible-call-trigger {
       position: absolute;
-      top: 605px; 
-      left: 112px; 
+
+      top: 605px;
+      left: 112px;
+
       width: 55px;
       height: 55px;
+
       border-radius: 50%;
       cursor: pointer;
+
       background-color: rgba(255, 255, 255, 0);
     }
 
-    /* CALQUE DU MODE APPEL (RESTE PAR-DESSUS VOTRE FOND POUR NE PAS FAIRE D'ÉCRAN NOIR) */
-    #layer-calling {
+    /* Petit effet seulement pendant les tests */
+    .invisible-call-trigger:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* =========================================
+       ÉCRAN D'APPEL
+       ========================================= */
+
+    #screen-calling {
       position: absolute;
+
       top: 0;
       left: 0;
+
       width: 100%;
       height: 100%;
-      background-color: rgba(20, 35, 75, 0.85); /* Assombrit le fond d'origine au lieu de le couper */
-      backdrop-filter: blur(15px);
+
+      background: linear-gradient(
+        to bottom,
+        #293d6d 0%,
+        #152042 100%
+      );
+
       z-index: 1000;
+
       display: flex;
       flex-direction: column;
       align-items: center;
+
       padding-top: 60px;
     }
 
@@ -86,11 +127,19 @@
       margin-bottom: 40px;
     }
 
+    /* =========================================
+       BOUTONS DE L'APPEL
+       ========================================= */
+
     .calling-grid {
       display: grid;
+
       grid-template-columns: repeat(3, 1fr);
+
       gap: 30px;
+
       width: 80%;
+
       margin-top: auto;
       margin-bottom: 60px;
     }
@@ -99,7 +148,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+
       gap: 8px;
+
       color: #ffffff;
       font-size: 12px;
     }
@@ -107,78 +158,157 @@
     .circle-btn {
       width: 55px;
       height: 55px;
+
       background-color: rgba(255, 255, 255, 0.2);
+
       border-radius: 50%;
       border: none;
+
       color: white;
       font-size: 20px;
+
       cursor: pointer;
     }
 
     .btn-hangup {
       background-color: #ff3b30;
     }
+
   </style>
 </head>
+
 <body>
+
+  <!-- =========================================
+       TÉLÉPHONE
+       ========================================= -->
 
   <div class="phone-container">
 
-    <!-- Version mise à jour à la minute près par le JavaScript -->
-    <div class="app-version" id="version-lbl">v1.0.0000</div>
+    <!-- ÉCRAN PRINCIPAL -->
+    <div id="screen-contact-view">
 
-    <!-- Zone invisible cliquable sur le bouton appel de votre photo -->
-    <div class="invisible-call-trigger" onclick="lancerAppelWizard()"></div>
+      <!-- Version -->
+      <div class="app-version">
+        v1.4.2
+      </div>
 
-    <!-- CALQUE APPEL (S'affiche en transparence par-dessus votre fond) -->
-    <div id="layer-calling" style="display: none;">
-      <div class="calling-status">Appel cellulaire en cours...</div>
-      <div class="calling-name">Nathalie</div>
-      
+      <!--
+        ZONE INVISIBLE AU-DESSUS
+        DU BOUTON TÉLÉPHONE
+      -->
+      <div
+        class="invisible-call-trigger"
+        onclick="lancerAppelWizard()">
+      </div>
+
+    </div>
+
+
+    <!-- =========================================
+         ÉCRAN D'APPEL
+         ========================================= -->
+
+    <div
+      id="screen-calling"
+      style="display: none;">
+
+      <div class="calling-status">
+        Appel cellulaire en cours...
+      </div>
+
+      <div class="calling-name">
+        Nathalie
+      </div>
+
+
+      <!-- BOUTONS -->
+
       <div class="calling-grid">
-        <div class="call-btn-container"><button class="circle-btn">🔇</button><span>silence</span></div>
-        <div class="call-btn-container"><button class="circle-btn">⌨️</button><span>clavier</span></div>
-        <div class="call-btn-container"><button class="circle-btn">🔊</button><span>haut-parleur</span></div>
-        <div class="call-btn-container"><button class="circle-btn">➕</button><span>nouvel appel</span></div>
-        <div class="call-btn-container"><button class="circle-btn">📹</button><span>FaceTime</span></div>
-        <div class="call-btn-container"><button class="circle-btn">👤</button><span>contacts</span></div>
+
+        <div class="call-btn-container">
+          <button class="circle-btn">🔇</button>
+          <span>silence</span>
+        </div>
+
+        <div class="call-btn-container">
+          <button class="circle-btn">⌨️</button>
+          <span>clavier</span>
+        </div>
+
+        <div class="call-btn-container">
+          <button class="circle-btn">🔊</button>
+          <span>haut-parleur</span>
+        </div>
+
+        <div class="call-btn-container">
+          <button class="circle-btn">➕</button>
+          <span>nouvel appel</span>
+        </div>
+
+        <div class="call-btn-container">
+          <button class="circle-btn">📹</button>
+          <span>FaceTime</span>
+        </div>
+
+        <div class="call-btn-container">
+          <button class="circle-btn">👤</button>
+          <span>contacts</span>
+        </div>
+
       </div>
 
-      <div style="margin-bottom: 80px;" onclick="raccrocherAppel()">
-        <button class="circle-btn btn-hangup">🔴</button>
+
+      <!-- BOUTON RACCROCHER -->
+
+      <div
+        style="margin-bottom: 80px;"
+        onclick="raccrocherAppel()">
+
+        <button class="circle-btn btn-hangup">
+          🔴
+        </button>
+
       </div>
+
     </div>
 
   </div>
 
+
+  <!-- =========================================
+       JAVASCRIPT
+       ========================================= -->
+
   <script>
-    // Calcule la version en fonction de la dernière modification à la minute près
-    function calculerVersionMinutes() {
-      let derniereModif = new Date(document.lastModified);
-      let jour = derniereModif.getDate();
-      let heures = derniereModif.getHours();
-      let minutes = derniereModif.getMinutes();
-
-      // Ajustement du format à deux chiffres
-      if (jour < 10) jour = '0' + jour;
-      if (heures < 10) heures = '0' + heures;
-      if (minutes < 10) minutes = '0' + minutes;
-
-      // Génère le numéro (Exemple : v1.21.1045)
-      document.getElementById('version-lbl').innerText = "v1." + jour + "." + heures + minutes;
-    }
 
     function lancerAppelWizard() {
-      document.getElementById('layer-calling').style.display = 'flex';
+
+      document.getElementById(
+        'screen-contact-view'
+      ).style.display = 'none';
+
+      document.getElementById(
+        'screen-calling'
+      ).style.display = 'flex';
+
     }
+
 
     function raccrocherAppel() {
-      document.getElementById('layer-calling').style.display = 'none';
+
+      document.getElementById(
+        'screen-calling'
+      ).style.display = 'none';
+
+      document.getElementById(
+        'screen-contact-view'
+      ).style.display = 'block';
+
     }
 
-    // Exécute le calcul au chargement de la page
-    window.onload = calculerVersionMinutes;
   </script>
 
 </body>
 </html>
+```
