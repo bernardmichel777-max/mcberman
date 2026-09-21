@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -361,6 +360,7 @@
   </div>
 
 
+
 <script>
 
   /* =====================================================
@@ -368,42 +368,50 @@
      ===================================================== */
 
   const valeursCartes = [
-    "As",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "Valet",
-    "Dame",
-    "Roi"
+    "As", "2", "3", "4", "5", "6", "7",
+    "8", "9", "10", "Valet", "Dame", "Roi"
   ];
 
-
   const enseignesCartes = [
-    "Pique",
-    "Cœur",
-    "Trèfle",
-    "Carreau"
+    "Pique", "Cœur", "Trèfle", "Carreau"
   ];
 
 
   /* =====================================================
-     VARIABLES DU TOUR
+     VARIABLES
      ===================================================== */
 
   let indexValeur = 0;
   let indexEnseigne = 0;
-
   let etapeTour = 0;
-
   let intervalleMagic = null;
 
-  let minuterieAccueil = null;
+
+  /* =====================================================
+     FONCTION VOCALE
+     ===================================================== */
+
+  function parler(texte, vitesse = 0.9) {
+
+    if (!("speechSynthesis" in window)) {
+      console.log("Synthèse vocale non disponible.");
+      return;
+    }
+
+    // Annule une éventuelle parole précédente
+    window.speechSynthesis.cancel();
+
+    const voix = new SpeechSynthesisUtterance(texte);
+
+    voix.lang = "fr-CA";
+    voix.rate = vitesse;
+    voix.pitch = 1;
+    voix.volume = 1;
+
+    window.speechSynthesis.speak(voix);
+
+    console.log("VOIX :", texte);
+  }
 
 
   /* =====================================================
@@ -412,70 +420,106 @@
 
   function lancerAppelWizard() {
 
-    /* Affiche l'écran d'appel */
+    console.log("APPEL WIZARD");
 
+    // Affiche l'écran d'appel
     document.getElementById("layer-calling").style.display = "flex";
 
-
-    /* Affiche l'indicateur secret */
-
+    // Affiche l'indicateur secret
     document.getElementById("magic-box").style.display = "block";
 
-
-    /* Réinitialisation */
-
+    // Réinitialisation
     etapeTour = 0;
-
     indexValeur = 0;
-
     indexEnseigne = 0;
 
-
-    /* Efface le résultat précédent */
+    clearInterval(intervalleMagic);
 
     document.getElementById("magic-box").innerText =
       "Carte : --";
 
 
-    /* Affiche le message d'accueil */
+    /* ============================================
+       MESSAGE VISUEL
+       ============================================ */
 
     const message =
       document.getElementById("welcome-message");
 
+    message.innerHTML =
+      "Bonjour Mike...<br>Je suis prête à choisir une carte.";
+
     message.classList.add("visible");
 
 
-    /*
+    /* ============================================
+       MESSAGE VOCAL
+
        IMPORTANT :
+       Il est lancé DIRECTEMENT par le clic
+       sur le téléphone.
+       ============================================ */
 
-       Le défilement ne commence PAS immédiatement.
+    if ("speechSynthesis" in window) {
 
-       On laisse d'abord le message d'accueil
-       apparaître pendant 3 secondes.
-    */
+      window.speechSynthesis.cancel();
 
-    clearTimeout(minuterieAccueil);
+      const accueil =
+        new SpeechSynthesisUtterance(
+          "Bonjour Mike. Je suis prête à choisir une carte."
+        );
 
-    minuterieAccueil = setTimeout(function() {
-
-      /* Cache doucement le message */
-
-      message.classList.remove("visible");
-
+      accueil.lang = "fr-CA";
+      accueil.rate = 0.9;
+      accueil.pitch = 1;
+      accueil.volume = 1;
 
       /*
-         Après le message d'accueil,
-         on commence le défilement secret.
+         Lorsque Nathalie a terminé de parler,
+         on commence le défilement.
       */
 
-      setTimeout(function() {
+      accueil.onend = function() {
+
+        console.log("Accueil terminé.");
+
+        message.classList.remove("visible");
 
         demarrerDefilement();
 
-      }, 500);
+      };
 
+      accueil.onerror = function(event) {
 
-    }, 3000);
+        console.log(
+          "Erreur voix accueil : ",
+          event.error
+        );
+
+        // Même si la voix échoue,
+        // le tour continue.
+        message.classList.remove("visible");
+
+        demarrerDefilement();
+
+      };
+
+      window.speechSynthesis.speak(accueil);
+
+    } else {
+
+      // Si la synthèse vocale n'existe pas
+      // on continue quand même après 3 secondes.
+
+      setTimeout(function() {
+
+        message.classList.remove("visible");
+
+        demarrerDefilement();
+
+      }, 3000);
+
+    }
 
   }
 
@@ -486,15 +530,15 @@
 
   function demarrerDefilement() {
 
-    clearInterval(intervalleMagic);
+    console.log("DÉBUT DU DÉFILEMENT");
 
+    clearInterval(intervalleMagic);
 
     intervalleMagic = setInterval(function() {
 
-
-      /* -------------------------------
-         ÉTAPE 1 : VALEUR
-         ------------------------------- */
+      /* ==========================================
+         VALEUR
+         ========================================== */
 
       if (etapeTour === 0) {
 
@@ -502,17 +546,15 @@
           "Carte : " +
           valeursCartes[indexValeur];
 
-
         indexValeur =
           (indexValeur + 1) %
           valeursCartes.length;
-
       }
 
 
-      /* -------------------------------
-         ÉTAPE 2 : ENSEIGNE
-         ------------------------------- */
+      /* ==========================================
+         ENSEIGNE
+         ========================================== */
 
       else if (etapeTour === 1) {
 
@@ -520,11 +562,9 @@
           "Enseigne : " +
           enseignesCartes[indexEnseigne];
 
-
         indexEnseigne =
           (indexEnseigne + 1) %
           enseignesCartes.length;
-
       }
 
     }, 1500);
@@ -533,8 +573,7 @@
 
 
   /* =====================================================
-     PREMIÈRE SÉLECTION
-     VALEUR DE LA CARTE
+     SÉLECTION DE LA VALEUR
      ===================================================== */
 
   function selectionnerValeur() {
@@ -543,12 +582,6 @@
       return;
     }
 
-
-    /*
-       On récupère la dernière valeur
-       affichée avant le clic.
-    */
-
     let valeurChoisie =
       valeursCartes[
         (indexValeur === 0
@@ -556,10 +589,8 @@
           : indexValeur) - 1
       ];
 
-
     console.log(
-      "Valeur sélectionnée :",
-      valeurChoisie
+      "VALEUR CHOISIE : " + valeurChoisie
     );
 
 
@@ -567,14 +598,7 @@
 
     etapeTour = 1;
 
-
-    /*
-       Remise à zéro du défilement
-       des enseignes.
-    */
-
     indexEnseigne = 0;
-
 
     document.getElementById("magic-box").innerText =
       "Enseigne : " +
@@ -584,8 +608,7 @@
 
 
   /* =====================================================
-     DEUXIÈME SÉLECTION
-     ENSEIGNE
+     SÉLECTION DE L'ENSEIGNE
      ===================================================== */
 
   function selectionnerEnseigne() {
@@ -595,10 +618,6 @@
     }
 
 
-    /*
-       Récupération de la valeur finale
-    */
-
     let valeurFinale =
       valeursCartes[
         (indexValeur === 0
@@ -606,10 +625,6 @@
           : indexValeur) - 1
       ];
 
-
-    /*
-       Récupération de l'enseigne finale
-    */
 
     let enseigneFinale =
       enseignesCartes[
@@ -619,44 +634,43 @@
       ];
 
 
+    console.log(
+      "CARTE FINALE : " +
+      valeurFinale +
+      " de " +
+      enseigneFinale
+    );
+
+
     /* Tour terminé */
 
     etapeTour = 2;
 
-
     clearInterval(intervalleMagic);
 
 
-    /*
-       Affichage du résultat final
-    */
+    /* Affichage */
 
     document.getElementById("magic-box").innerText =
       "Prêt !";
 
 
-    /*
-       Petite pause avant l'annonce.
+    /* ==========================================
+       ANNONCE VOCALE FINALE
 
-       Cela permet au spectateur de voir
-       "Prêt !" avant que la voix annonce
-       la carte.
-    */
+       On lance directement la parole.
+       ========================================== */
 
-    setTimeout(function() {
-
-      annoncerResultatHautParleur(
-        valeurFinale,
-        enseigneFinale
-      );
-
-    }, 800);
+    annoncerResultatHautParleur(
+      valeurFinale,
+      enseigneFinale
+    );
 
   }
 
 
   /* =====================================================
-     ANNONCE VOCALE FINALE
+     ANNONCE FINALE
      ===================================================== */
 
   function annoncerResultatHautParleur(
@@ -664,56 +678,56 @@
     enseigne
   ) {
 
+    const texte =
+      "La carte choisie est le " +
+      valeur +
+      " de " +
+      enseigne;
+
+
+    console.log(
+      "ANNONCE FINALE : " + texte
+    );
+
+
     if ("speechSynthesis" in window) {
-
-
-      /* Annule toute voix précédente */
 
       window.speechSynthesis.cancel();
 
 
-      /*
-         Message final
-      */
-
-      let messageTexte =
-        "La carte choisie est le " +
-        valeur +
-        " de " +
-        enseigne;
-
-
-      let parole =
-        new SpeechSynthesisUtterance(
-          messageTexte
-        );
+      const parole =
+        new SpeechSynthesisUtterance(texte);
 
 
       parole.lang = "fr-CA";
-
-      parole.rate = 0.9;
-
-      parole.pitch = 1.0;
-
-      parole.volume = 1.0;
+      parole.rate = 0.85;
+      parole.pitch = 1;
+      parole.volume = 1;
 
 
-      /*
-         Lancement de la voix
-      */
+      parole.onstart = function() {
+        console.log("Annonce vocale démarrée.");
+      };
+
+
+      parole.onend = function() {
+        console.log("Annonce vocale terminée.");
+      };
+
+
+      parole.onerror = function(event) {
+        console.log(
+          "ERREUR VOCALE : ",
+          event.error
+        );
+      };
+
 
       window.speechSynthesis.speak(parole);
 
-    }
+    } else {
 
-    else {
-
-      alert(
-        "La carte choisie est le " +
-        valeur +
-        " de " +
-        enseigne
-      );
+      alert(texte);
 
     }
 
@@ -721,7 +735,7 @@
 
 
   /* =====================================================
-     TEST VOCAL MANUEL
+     TEST MANUEL
      ===================================================== */
 
   function raccordementManuelVocal(v, e) {
@@ -739,13 +753,9 @@
 
     clearInterval(intervalleMagic);
 
-    clearTimeout(minuterieAccueil);
-
 
     if ("speechSynthesis" in window) {
-
       window.speechSynthesis.cancel();
-
     }
 
 
