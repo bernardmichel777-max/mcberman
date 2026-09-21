@@ -2,54 +2,39 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Call the Wizard - Version Automatique</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Call the Wizard - Magic Edition</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent;
     }
 
+    /* PLEIN ÉCRAN TOTAL SANS BORDURES */
     html, body {
+      width: 100%;
       height: 100%;
-      background-color: #111;
+      background-color: #000;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      height: 100dvh; /* tient compte de la barre d'adresse sur téléphone */
       overflow: hidden;
     }
 
-    /* Le téléphone garde le format 375 x 812 et s'adapte à l'écran disponible */
+    /* LE CONTENEUR PREND 100% DE L'ÉCRAN DISPONIBLE */
     .phone-container {
-      width: min(100vw, calc(100vh * 750 / 1334));
-      width: min(100vw, calc(100dvh * 750 / 1334));
-      aspect-ratio: 750 / 1334;
-      background: #1a1a1a url('fond-iphone.png') center / 100% 100% no-repeat;
+      width: 100%;
+      height: 100%;
+      background-image: url('fond-iphone.png');
+      background-size: cover;
+      background-position: center;
       position: relative;
-      overflow: hidden;
     }
 
-    /* Cadre arrondi seulement sur grand écran (ordinateur) */
-    @media (min-width: 500px) {
-      .phone-container {
-        border-radius: 40px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      }
-    }
-
-    /* VERSION EN HAUT À GAUCHE (SOUS L'OPÉRATEUR) */
+    /* AFFICHAGE DE LA VERSION (EN HAUT À GAUCHE) */
     .app-version {
       position: absolute;
-      top: 4.4%;
-      left: 2.5%;
+      top: 52px;
+      left: 20px;
       font-size: 11px;
       color: rgba(255, 255, 255, 0.7);
       font-weight: bold;
@@ -57,76 +42,74 @@
       font-family: monospace;
     }
 
-    /* ZONE CLIQUABLE INVISIBLE SUR LE BOUTON D'APPEL (positions en pourcentage) */
+    /* ZONE D'AFFICHAGE DES CHIFFRES SECRET DE SÉLECTION (EN HAUT À DROITE) */
+    .magic-indicator {
+      position: absolute;
+      top: 52px;
+      right: 20px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: bold;
+      z-index: 1001;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: none; /* Apparaît uniquement pendant l'appel */
+    }
+
+    /* ZONE CLIQUABLE INVISIBLE (SUR LE BOUTON APPEL DU FOND) */
     .invisible-call-trigger {
       position: absolute;
-      top: 58.4%;   /* 779 / 1334 */
-      left: 31.4%;  /* 236 / 750 */
-      width: 16.8%; /* 126 / 750 */
-      height: 9.4%;  /* 126 / 1334 */
+      bottom: 22%; /* Aligné sur la zone basse du téléphone */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       cursor: pointer;
       background-color: rgba(255, 255, 255, 0);
+      z-index: 950;
     }
 
-    /* Ajoutez ?debug à l'adresse de la page pour voir la zone cliquable en rouge */
-    .invisible-call-trigger.debug {
-      background-color: rgba(255, 0, 0, 0.45);
-    }
-
-    /* Message d'erreur si l'image de fond est introuvable */
-    #erreur-image {
-      display: none;
-      position: absolute;
-      top: 12%;
-      left: 5%;
-      right: 5%;
-      padding: 10px;
-      background: #c0392b;
-      color: #fff;
-      font-size: 13px;
-      border-radius: 8px;
-      z-index: 2000;
-      text-align: center;
-    }
-
-    /* CALQUE DU MODE APPEL */
+    /* CALQUE DE L'ÉCRAN D'APPEL EN TRANSPARENCE FLUIDE */
     #layer-calling {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(20, 35, 75, 0.85);
-      -webkit-backdrop-filter: blur(15px);
-      backdrop-filter: blur(15px);
+      background-color: rgba(15, 28, 60, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       z-index: 1000;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 7%;
+      padding-top: 80px;
+      display: none;
     }
 
     .calling-status {
-      font-size: 15px;
+      font-size: 16px;
       color: rgba(255, 255, 255, 0.6);
       margin-bottom: 5px;
     }
 
     .calling-name {
       color: #ffffff;
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 500;
       margin-bottom: 40px;
     }
 
+    /* GRILLE INTERACTIVE DU TOUR (BOUTONS DISCRETS OU ACTIONS) */
     .calling-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 30px;
-      width: 80%;
+      width: 85%;
       margin-top: auto;
-      margin-bottom: 60px;
+      margin-bottom: 40px;
     }
 
     .call-btn-container {
@@ -135,17 +118,17 @@
       align-items: center;
       gap: 8px;
       color: #ffffff;
-      font-size: 12px;
+      font-size: 13px;
     }
 
     .circle-btn {
-      width: 55px;
-      height: 55px;
-      background-color: rgba(255, 255, 255, 0.2);
+      width: 65px;
+      height: 65px;
+      background-color: rgba(255, 255, 255, 0.15);
       border-radius: 50%;
       border: none;
       color: white;
-      font-size: 20px;
+      font-size: 22px;
       cursor: pointer;
     }
 
@@ -158,28 +141,32 @@
 
   <div class="phone-container">
 
+    <!-- Version mise à jour à la minute près -->
     <div class="app-version" id="version-lbl">v1.0.0000</div>
 
-    <div id="erreur-image">⚠️ Image « fond-iphone.png » introuvable. Vérifiez qu'elle est dans le même dossier que cette page, avec exactement le même nom.</div>
+    <!-- Compteur secret pour le magicien en haut à droite -->
+    <div class="magic-indicator" id="magic-box">Valeur : --</div>
 
-    <!-- Zone invisible cliquable sur le bouton appel de votre photo -->
-    <div class="invisible-call-trigger" id="trigger" onclick="lancerAppelWizard()"></div>
+    <!-- Zone pour lancer l'appel depuis la photo de fond -->
+    <div class="invisible-call-trigger" onclick="lancerAppelWizard()"></div>
 
-    <!-- CALQUE APPEL -->
-    <div id="layer-calling" style="display: none;">
-      <div class="calling-status">Appel cellulaire en cours...</div>
+    <!-- INTERFACE ÉCRAN D'APPEL -->
+    <div id="layer-calling">
+      <div class="calling-status" id="call-duration">Appel en cours...</div>
       <div class="calling-name">Nathalie</div>
-
+      
       <div class="calling-grid">
-        <div class="call-btn-container"><button class="circle-btn">🔇</button><span>silence</span></div>
-        <div class="call-btn-container"><button class="circle-btn">⌨️</button><span>clavier</span></div>
+        <!-- Cliquer sur silence ou clavier va intercepter discrètement la valeur / enseigne -->
+        <div class="call-btn-container" onclick="selectionnerValeur()"><button class="circle-btn">🔇</button><span>silence</span></div>
+        <div class="call-btn-container" onclick="selectionnerEnseigne()"><button class="circle-btn">⌨️</button><span>clavier</span></div>
         <div class="call-btn-container"><button class="circle-btn">🔊</button><span>haut-parleur</span></div>
         <div class="call-btn-container"><button class="circle-btn">➕</button><span>nouvel appel</span></div>
         <div class="call-btn-container"><button class="circle-btn">📹</button><span>FaceTime</span></div>
         <div class="call-btn-container"><button class="circle-btn">👤</button><span>contacts</span></div>
       </div>
 
-      <div style="margin-bottom: 80px;" onclick="raccrocherAppel()">
+      <!-- Bouton rouge Raccrocher -->
+      <div style="margin-bottom: 60px;" onclick="raccrocherAppel()">
         <button class="circle-btn btn-hangup">🔴</button>
       </div>
     </div>
@@ -187,60 +174,100 @@
   </div>
 
   <script>
-    // La version = date et heure du dernier "Commit changes" de CETTE page sur GitHub
-    // Format : v1.JJ.HHMM (exemple : v1.21.1045 = modifiée le 21 à 10h45)
-    function formaterVersion(date) {
-      let jour = String(date.getDate()).padStart(2, '0');
-      let heures = String(date.getHours()).padStart(2, '0');
-      let minutes = String(date.getMinutes()).padStart(2, '0');
-      return "v1." + jour + "." + heures + minutes;
+    // Configuration du tour de magie
+    const valeursCartes = ["As", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Valet", "Dame", "Roi"];
+    const enseignesCartes = ["Pique", "Cœur", "Trèfle", "Carreau"];
+    
+    let indexValeur = 0;
+    let indexEnseigne = 0;
+    let etapeTour = 0; // 0 = choix valeur, 1 = choix enseigne, 2 = terminé
+    let intervalleMagic = null;
+
+    // Mise à jour de la version automatique (Horodatage)
+    function calculerVersionMinutes() {
+      let derniereModif = new Date(document.lastModified);
+      let jour = derniereModif.getDate();
+      let heures = derniereModif.getHours();
+      let minutes = derniereModif.getMinutes();
+
+      if (jour < 10) jour = '0' + jour;
+      if (heures < 10) heures = '0' + heures;
+      if (minutes < 10) minutes = '0' + minutes;
+
+      document.getElementById('version-lbl').innerText = "v1." + jour + "." + heures + minutes;
     }
 
-    async function calculerVersionMinutes() {
-      const lbl = document.getElementById('version-lbl');
-      const nomPage = location.pathname.split('/').pop() || 'index.html';
-      const url = "https://api.github.com/repos/bernardmichel777-max/mcberman/commits?per_page=1&path=" + encodeURIComponent(nomPage);
-      try {
-        const rep = await fetch(url);
-        if (!rep.ok) throw new Error("GitHub " + rep.status);
-        const data = await rep.json();
-        const v = formaterVersion(new Date(data[0].commit.committer.date));
-        lbl.innerText = v;
-        try { localStorage.setItem('versionWizard', v); } catch (e) {}
-      } catch (err) {
-        // Sans internet : on garde la dernière version connue
-        let v = null;
-        try { v = localStorage.getItem('versionWizard'); } catch (e) {}
-        lbl.innerText = v || "v1.??.????";
+    // Début du tour lors de l'appel
+    function lancerAppelWizard() {
+      document.getElementById('layer-calling').style.display = 'flex';
+      document.getElementById('magic-box').style.display = 'block';
+      
+      etapeTour = 0;
+      indexValeur = 0;
+      indexEnseigne = 0;
+      
+      // La première série de chiffres défile discrètement en haut à droite toutes les 1.5 secondes
+      intervalleMagic = setInterval(function() {
+        if (etapeTour === 0) {
+          document.getElementById('magic-box').innerText = "Carte : " + valeursCartes[indexValeur];
+          indexValeur = (indexValeur + 1) % valeursCartes.length;
+        } else if (etapeTour === 1) {
+          document.getElementById('magic-box').innerText = "Enseigne : " + enseignesCartes[indexEnseigne];
+          indexEnseigne = (indexEnseigne + 1) % enseignesCartes.length;
+        }
+      }, 1500);
+    }
+
+    // Validation secrète de la Valeur (ex: en appuyant sur le premier bouton ou à l'écoute)
+    function selectionnerValeur() {
+      if (etapeTour === 0) {
+        // Bloque la valeur précédente sélectionnée par le défilement
+        let valeurChoisie = valeursCartes[(indexValeur === 0 ? valeursCartes.length : indexValeur) - 1];
+        etapeTour = 1; // Passe à la série des 4 enseignes
       }
     }
 
-    function lancerAppelWizard() {
-      document.getElementById('layer-calling').style.display = 'flex';
+    // Validation secrète de l'Enseigne (Pique, Coeur, Trèfle, Carreau)
+    function selectionnerEnseigne() {
+      if (etapeTour === 1) {
+        let valeurFinale = valeursCartes[(indexValeur === 0 ? valeursCartes.length : indexValeur) - 1];
+        let enseigneFinale = enseignesCartes[(indexEnseigne === 0 ? enseignesCartes.length : indexEnseigne) - 1];
+        
+        etapeTour = 2;
+        clearInterval(intervalleMagic);
+        document.getElementById('magic-box').innerText = "Prêt !";
+
+        // Déclenche le haut-parleur vocal (Synthèse vocale native)
+        annoncerResultatHautParleur(valeurFinale, enseigneFinale);
+      }
+    }
+
+    // Fonction de voix artificielle (Text-to-Speech)
+    function annoncerResultatHautParleur(valeur, enseigne) {
+      if ('speechSynthesis' in window) {
+        let messageTexte = "La carte choisie est le " + valeur + " de " + enseigne;
+        let pparle = new SpeechSynthesisUtterance(messageTexte);
+        pparle.lang = 'fr-CA'; // Accent québécois / canadien français
+        pparle.rate = 0.9;     // Vitesse naturelle de l'assistant
+        window.speechSynthesis.speak(pparle);
+      } else {
+        alert("La carte est le " + valeur + " de " + enseigne);
+      }
+    }
+
+    function raccordementManuelVocal(v, e) {
+       // Permet de tester directement la voix si nécessaire
+       annoncerResultatHautParleur(v, e);
     }
 
     function raccrocherAppel() {
+      clearInterval(intervalleMagic);
+      window.speechSynthesis.cancel(); // Coupe le son si en cours
       document.getElementById('layer-calling').style.display = 'none';
+      document.getElementById('magic-box').style.display = 'none';
     }
 
-    // Vérifie que l'image de fond existe, sinon affiche un message clair
-    function verifierImageFond() {
-      const img = new Image();
-      img.onerror = function () {
-        document.getElementById('erreur-image').style.display = 'block';
-      };
-      img.src = 'fond-iphone.png';
-    }
-
-    // Mode debug : ajouter ?debug à l'adresse pour voir la zone cliquable
-    if (location.search.indexOf('debug') !== -1) {
-      document.getElementById('trigger').classList.add('debug');
-    }
-
-    window.onload = function () {
-      calculerVersionMinutes();
-      verifierImageFond();
-    };
+    window.onload = calculerVersionMinutes;
   </script>
 
 </body>
