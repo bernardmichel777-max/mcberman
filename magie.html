@@ -1,9 +1,12 @@
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
   <title>Call the Wizard - Magic Edition</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -11,7 +14,6 @@
       padding: 0;
     }
 
-    /* PLEIN ÉCRAN TOTAL SANS BORDURES */
     html, body {
       width: 100%;
       height: 100%;
@@ -20,7 +22,6 @@
       overflow: hidden;
     }
 
-    /* LE CONTENEUR PREND 100% DE L'ÉCRAN DISPONIBLE */
     .phone-container {
       width: 100%;
       height: 100%;
@@ -30,37 +31,46 @@
       position: relative;
     }
 
-    /* AFFICHAGE DE LA VERSION (EN HAUT À GAUCHE) */
+    /* ================================
+       VERSION DIRECTEMENT DANS LE HTML
+       ================================ */
+
     .app-version {
       position: absolute;
       top: 52px;
       left: 20px;
       font-size: 11px;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.75);
       font-weight: bold;
-      z-index: 999;
+      z-index: 2000;
       font-family: monospace;
     }
 
-    /* ZONE D'AFFICHAGE DES CHIFFRES SECRET DE SÉLECTION (EN HAUT À DROITE) */
+    /* ================================
+       INDICATEUR SECRET DU MAGICIEN
+       ================================ */
+
     .magic-indicator {
       position: absolute;
       top: 52px;
       right: 20px;
       font-size: 14px;
-      color: rgba(255, 255, 255, 0.85);
+      color: rgba(255, 255, 255, 0.9);
       font-weight: bold;
-      z-index: 1001;
+      z-index: 2001;
       background: rgba(0, 0, 0, 0.6);
       padding: 4px 10px;
       border-radius: 6px;
-      display: none; /* Apparaît uniquement pendant l'appel */
+      display: none;
     }
 
-    /* ZONE CLIQUABLE INVISIBLE (SUR LE BOUTON APPEL DU FOND) */
+    /* ================================
+       ZONE CLIQUABLE DU TÉLÉPHONE
+       ================================ */
+
     .invisible-call-trigger {
       position: absolute;
-      bottom: 22%; /* Aligné sur la zone basse du téléphone */
+      bottom: 22%;
       left: 50%;
       transform: translateX(-50%);
       width: 80px;
@@ -71,22 +81,30 @@
       z-index: 950;
     }
 
-    /* CALQUE DE L'ÉCRAN D'APPEL EN TRANSPARENCE FLUIDE */
+    /* ================================
+       ÉCRAN D'APPEL
+       ================================ */
+
     #layer-calling {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+
       background-color: rgba(15, 28, 60, 0.88);
+
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
+
       z-index: 1000;
-      display: flex;
+
+      display: none;
+
       flex-direction: column;
       align-items: center;
+
       padding-top: 80px;
-      display: none;
     }
 
     .calling-status {
@@ -99,15 +117,47 @@
       color: #ffffff;
       font-size: 38px;
       font-weight: 500;
-      margin-bottom: 40px;
+      margin-bottom: 20px;
     }
 
-    /* GRILLE INTERACTIVE DU TOUR (BOUTONS DISCRETS OU ACTIONS) */
+    /* ================================
+       MESSAGE D'ACCUEIL
+       ================================ */
+
+    #welcome-message {
+      width: 85%;
+      text-align: center;
+
+      color: rgba(255, 255, 255, 0.95);
+
+      font-size: 18px;
+      line-height: 1.5;
+
+      margin-top: 10px;
+
+      min-height: 60px;
+
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    #welcome-message.visible {
+      opacity: 1;
+    }
+
+    /* ================================
+       GRILLE DES BOUTONS
+       ================================ */
+
     .calling-grid {
       display: grid;
+
       grid-template-columns: repeat(3, 1fr);
+
       gap: 30px;
+
       width: 85%;
+
       margin-top: auto;
       margin-bottom: 40px;
     }
@@ -116,7 +166,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+
       gap: 8px;
+
       color: #ffffff;
       font-size: 13px;
     }
@@ -124,151 +176,597 @@
     .circle-btn {
       width: 65px;
       height: 65px;
+
       background-color: rgba(255, 255, 255, 0.15);
+
       border-radius: 50%;
+
       border: none;
+
       color: white;
+
       font-size: 22px;
+
       cursor: pointer;
     }
 
     .btn-hangup {
       background-color: #ff3b30;
     }
+
   </style>
 </head>
+
 <body>
 
   <div class="phone-container">
 
-    <!-- Version mise à jour à la minute près -->
-    <div class="app-version" id="version-lbl">v1.0.0000</div>
+    <!-- ======================================
+         VERSION : MODIFIER DIRECTEMENT ICI
+         ====================================== -->
 
-    <!-- Compteur secret pour le magicien en haut à droite -->
-    <div class="magic-indicator" id="magic-box">Valeur : --</div>
+    <div class="app-version" id="version-lbl">
+      v1.21.1305
+    </div>
 
-    <!-- Zone pour lancer l'appel depuis la photo de fond -->
-    <div class="invisible-call-trigger" onclick="lancerAppelWizard()"></div>
 
-    <!-- INTERFACE ÉCRAN D'APPEL -->
+    <!-- ======================================
+         INDICATEUR SECRET
+         ====================================== -->
+
+    <div class="magic-indicator" id="magic-box">
+      Carte : --
+    </div>
+
+
+    <!-- ======================================
+         BOUTON TÉLÉPHONE
+         ====================================== -->
+
+    <div
+      class="invisible-call-trigger"
+      onclick="lancerAppelWizard()">
+    </div>
+
+
+    <!-- ======================================
+         ÉCRAN D'APPEL
+         ====================================== -->
+
     <div id="layer-calling">
-      <div class="calling-status" id="call-duration">Appel en cours...</div>
-      <div class="calling-name">Nathalie</div>
-      
-      <div class="calling-grid">
-        <!-- Cliquer sur silence ou clavier va intercepter discrètement la valeur / enseigne -->
-        <div class="call-btn-container" onclick="selectionnerValeur()"><button class="circle-btn">🔇</button><span>silence</span></div>
-        <div class="call-btn-container" onclick="selectionnerEnseigne()"><button class="circle-btn">⌨️</button><span>clavier</span></div>
-        <div class="call-btn-container"><button class="circle-btn">🔊</button><span>haut-parleur</span></div>
-        <div class="call-btn-container"><button class="circle-btn">➕</button><span>nouvel appel</span></div>
-        <div class="call-btn-container"><button class="circle-btn">📹</button><span>FaceTime</span></div>
-        <div class="call-btn-container"><button class="circle-btn">👤</button><span>contacts</span></div>
+
+      <div class="calling-status" id="call-duration">
+        Appel en cours...
       </div>
 
-      <!-- Bouton rouge Raccrocher -->
-      <div style="margin-bottom: 60px;" onclick="raccrocherAppel()">
-        <button class="circle-btn btn-hangup">🔴</button>
+      <div class="calling-name">
+        Nathalie
       </div>
+
+
+      <!-- MESSAGE D'ACCUEIL -->
+
+      <div id="welcome-message">
+        Bonjour Mike...<br>
+        Je suis prête à choisir une carte.
+      </div>
+
+
+      <!-- ======================================
+           BOUTONS
+           ====================================== -->
+
+      <div class="calling-grid">
+
+        <div
+          class="call-btn-container"
+          onclick="selectionnerValeur()">
+
+          <button class="circle-btn">
+            🔇
+          </button>
+
+          <span>
+            silence
+          </span>
+
+        </div>
+
+
+        <div
+          class="call-btn-container"
+          onclick="selectionnerEnseigne()">
+
+          <button class="circle-btn">
+            ⌨️
+          </button>
+
+          <span>
+            clavier
+          </span>
+
+        </div>
+
+
+        <div class="call-btn-container">
+
+          <button class="circle-btn">
+            🔊
+          </button>
+
+          <span>
+            haut-parleur
+          </span>
+
+        </div>
+
+
+        <div class="call-btn-container">
+
+          <button class="circle-btn">
+            ➕
+          </button>
+
+          <span>
+            nouvel appel
+          </span>
+
+        </div>
+
+
+        <div class="call-btn-container">
+
+          <button class="circle-btn">
+            📹
+          </button>
+
+          <span>
+            FaceTime
+          </span>
+
+        </div>
+
+
+        <div class="call-btn-container">
+
+          <button class="circle-btn">
+            👤
+          </button>
+
+          <span>
+            contacts
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ======================================
+           RACCROCHER
+           ====================================== -->
+
+      <div
+        style="margin-bottom: 60px;"
+        onclick="raccrocherAppel()">
+
+        <button class="circle-btn btn-hangup">
+          🔴
+        </button>
+
+      </div>
+
     </div>
 
   </div>
 
-  <script>
-    // Configuration du tour de magie
-    const valeursCartes = ["As", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Valet", "Dame", "Roi"];
-    const enseignesCartes = ["Pique", "Cœur", "Trèfle", "Carreau"];
-    
-    let indexValeur = 0;
-    let indexEnseigne = 0;
-    let etapeTour = 0; // 0 = choix valeur, 1 = choix enseigne, 2 = terminé
-    let intervalleMagic = null;
 
-    // Mise à jour de la version automatique (Horodatage)
-    function calculerVersionMinutes() {
-      let derniereModif = new Date(document.lastModified);
-      let jour = derniereModif.getDate();
-      let heures = derniereModif.getHours();
-      let minutes = derniereModif.getMinutes();
+<script>
 
-      if (jour < 10) jour = '0' + jour;
-      if (heures < 10) heures = '0' + heures;
-      if (minutes < 10) minutes = '0' + minutes;
+  /* =====================================================
+     CARTES
+     ===================================================== */
 
-      document.getElementById('version-lbl').innerText = "v1." + jour + "." + heures + minutes;
-    }
+  const valeursCartes = [
+    "As",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "Valet",
+    "Dame",
+    "Roi"
+  ];
 
-    // Début du tour lors de l'appel
-    function lancerAppelWizard() {
-      document.getElementById('layer-calling').style.display = 'flex';
-      document.getElementById('magic-box').style.display = 'block';
-      
-      etapeTour = 0;
-      indexValeur = 0;
-      indexEnseigne = 0;
-      
-      // La première série de chiffres défile discrètement en haut à droite toutes les 1.5 secondes
-      intervalleMagic = setInterval(function() {
-        if (etapeTour === 0) {
-          document.getElementById('magic-box').innerText = "Carte : " + valeursCartes[indexValeur];
-          indexValeur = (indexValeur + 1) % valeursCartes.length;
-        } else if (etapeTour === 1) {
-          document.getElementById('magic-box').innerText = "Enseigne : " + enseignesCartes[indexEnseigne];
-          indexEnseigne = (indexEnseigne + 1) % enseignesCartes.length;
-        }
-      }, 1500);
-    }
 
-    // Validation secrète de la Valeur (ex: en appuyant sur le premier bouton ou à l'écoute)
-    function selectionnerValeur() {
+  const enseignesCartes = [
+    "Pique",
+    "Cœur",
+    "Trèfle",
+    "Carreau"
+  ];
+
+
+  /* =====================================================
+     VARIABLES DU TOUR
+     ===================================================== */
+
+  let indexValeur = 0;
+  let indexEnseigne = 0;
+
+  let etapeTour = 0;
+
+  let intervalleMagic = null;
+
+  let minuterieAccueil = null;
+
+
+  /* =====================================================
+     LANCEMENT DE L'APPEL
+     ===================================================== */
+
+  function lancerAppelWizard() {
+
+    /* Affiche l'écran d'appel */
+
+    document.getElementById("layer-calling").style.display = "flex";
+
+
+    /* Affiche l'indicateur secret */
+
+    document.getElementById("magic-box").style.display = "block";
+
+
+    /* Réinitialisation */
+
+    etapeTour = 0;
+
+    indexValeur = 0;
+
+    indexEnseigne = 0;
+
+
+    /* Efface le résultat précédent */
+
+    document.getElementById("magic-box").innerText =
+      "Carte : --";
+
+
+    /* Affiche le message d'accueil */
+
+    const message =
+      document.getElementById("welcome-message");
+
+    message.classList.add("visible");
+
+
+    /*
+       IMPORTANT :
+
+       Le défilement ne commence PAS immédiatement.
+
+       On laisse d'abord le message d'accueil
+       apparaître pendant 3 secondes.
+    */
+
+    clearTimeout(minuterieAccueil);
+
+    minuterieAccueil = setTimeout(function() {
+
+      /* Cache doucement le message */
+
+      message.classList.remove("visible");
+
+
+      /*
+         Après le message d'accueil,
+         on commence le défilement secret.
+      */
+
+      setTimeout(function() {
+
+        demarrerDefilement();
+
+      }, 500);
+
+
+    }, 3000);
+
+  }
+
+
+  /* =====================================================
+     DÉFILEMENT SECRET
+     ===================================================== */
+
+  function demarrerDefilement() {
+
+    clearInterval(intervalleMagic);
+
+
+    intervalleMagic = setInterval(function() {
+
+
+      /* -------------------------------
+         ÉTAPE 1 : VALEUR
+         ------------------------------- */
+
       if (etapeTour === 0) {
-        // Bloque la valeur précédente sélectionnée par le défilement
-        let valeurChoisie = valeursCartes[(indexValeur === 0 ? valeursCartes.length : indexValeur) - 1];
-        etapeTour = 1; // Passe à la série des 4 enseignes
+
+        document.getElementById("magic-box").innerText =
+          "Carte : " +
+          valeursCartes[indexValeur];
+
+
+        indexValeur =
+          (indexValeur + 1) %
+          valeursCartes.length;
+
       }
-    }
 
-    // Validation secrète de l'Enseigne (Pique, Coeur, Trèfle, Carreau)
-    function selectionnerEnseigne() {
-      if (etapeTour === 1) {
-        let valeurFinale = valeursCartes[(indexValeur === 0 ? valeursCartes.length : indexValeur) - 1];
-        let enseigneFinale = enseignesCartes[(indexEnseigne === 0 ? enseignesCartes.length : indexEnseigne) - 1];
-        
-        etapeTour = 2;
-        clearInterval(intervalleMagic);
-        document.getElementById('magic-box').innerText = "Prêt !";
 
-        // Déclenche le haut-parleur vocal (Synthèse vocale native)
-        annoncerResultatHautParleur(valeurFinale, enseigneFinale);
+      /* -------------------------------
+         ÉTAPE 2 : ENSEIGNE
+         ------------------------------- */
+
+      else if (etapeTour === 1) {
+
+        document.getElementById("magic-box").innerText =
+          "Enseigne : " +
+          enseignesCartes[indexEnseigne];
+
+
+        indexEnseigne =
+          (indexEnseigne + 1) %
+          enseignesCartes.length;
+
       }
+
+    }, 1500);
+
+  }
+
+
+  /* =====================================================
+     PREMIÈRE SÉLECTION
+     VALEUR DE LA CARTE
+     ===================================================== */
+
+  function selectionnerValeur() {
+
+    if (etapeTour !== 0) {
+      return;
     }
 
-    // Fonction de voix artificielle (Text-to-Speech)
-    function annoncerResultatHautParleur(valeur, enseigne) {
-      if ('speechSynthesis' in window) {
-        let messageTexte = "La carte choisie est le " + valeur + " de " + enseigne;
-        let pparle = new SpeechSynthesisUtterance(messageTexte);
-        pparle.lang = 'fr-CA'; // Accent québécois / canadien français
-        pparle.rate = 0.9;     // Vitesse naturelle de l'assistant
-        window.speechSynthesis.speak(pparle);
-      } else {
-        alert("La carte est le " + valeur + " de " + enseigne);
-      }
+
+    /*
+       On récupère la dernière valeur
+       affichée avant le clic.
+    */
+
+    let valeurChoisie =
+      valeursCartes[
+        (indexValeur === 0
+          ? valeursCartes.length
+          : indexValeur) - 1
+      ];
+
+
+    console.log(
+      "Valeur sélectionnée :",
+      valeurChoisie
+    );
+
+
+    /* Passage aux enseignes */
+
+    etapeTour = 1;
+
+
+    /*
+       Remise à zéro du défilement
+       des enseignes.
+    */
+
+    indexEnseigne = 0;
+
+
+    document.getElementById("magic-box").innerText =
+      "Enseigne : " +
+      enseignesCartes[indexEnseigne];
+
+  }
+
+
+  /* =====================================================
+     DEUXIÈME SÉLECTION
+     ENSEIGNE
+     ===================================================== */
+
+  function selectionnerEnseigne() {
+
+    if (etapeTour !== 1) {
+      return;
     }
 
-    function raccordementManuelVocal(v, e) {
-       // Permet de tester directement la voix si nécessaire
-       annoncerResultatHautParleur(v, e);
+
+    /*
+       Récupération de la valeur finale
+    */
+
+    let valeurFinale =
+      valeursCartes[
+        (indexValeur === 0
+          ? valeursCartes.length
+          : indexValeur) - 1
+      ];
+
+
+    /*
+       Récupération de l'enseigne finale
+    */
+
+    let enseigneFinale =
+      enseignesCartes[
+        (indexEnseigne === 0
+          ? enseignesCartes.length
+          : indexEnseigne) - 1
+      ];
+
+
+    /* Tour terminé */
+
+    etapeTour = 2;
+
+
+    clearInterval(intervalleMagic);
+
+
+    /*
+       Affichage du résultat final
+    */
+
+    document.getElementById("magic-box").innerText =
+      "Prêt !";
+
+
+    /*
+       Petite pause avant l'annonce.
+
+       Cela permet au spectateur de voir
+       "Prêt !" avant que la voix annonce
+       la carte.
+    */
+
+    setTimeout(function() {
+
+      annoncerResultatHautParleur(
+        valeurFinale,
+        enseigneFinale
+      );
+
+    }, 800);
+
+  }
+
+
+  /* =====================================================
+     ANNONCE VOCALE FINALE
+     ===================================================== */
+
+  function annoncerResultatHautParleur(
+    valeur,
+    enseigne
+  ) {
+
+    if ("speechSynthesis" in window) {
+
+
+      /* Annule toute voix précédente */
+
+      window.speechSynthesis.cancel();
+
+
+      /*
+         Message final
+      */
+
+      let messageTexte =
+        "La carte choisie est le " +
+        valeur +
+        " de " +
+        enseigne;
+
+
+      let parole =
+        new SpeechSynthesisUtterance(
+          messageTexte
+        );
+
+
+      parole.lang = "fr-CA";
+
+      parole.rate = 0.9;
+
+      parole.pitch = 1.0;
+
+      parole.volume = 1.0;
+
+
+      /*
+         Lancement de la voix
+      */
+
+      window.speechSynthesis.speak(parole);
+
     }
 
-    function raccrocherAppel() {
-      clearInterval(intervalleMagic);
-      window.speechSynthesis.cancel(); // Coupe le son si en cours
-      document.getElementById('layer-calling').style.display = 'none';
-      document.getElementById('magic-box').style.display = 'none';
+    else {
+
+      alert(
+        "La carte choisie est le " +
+        valeur +
+        " de " +
+        enseigne
+      );
+
     }
 
-    window.onload = calculerVersionMinutes;
-  </script>
+  }
+
+
+  /* =====================================================
+     TEST VOCAL MANUEL
+     ===================================================== */
+
+  function raccordementManuelVocal(v, e) {
+
+    annoncerResultatHautParleur(v, e);
+
+  }
+
+
+  /* =====================================================
+     RACCROCHER
+     ===================================================== */
+
+  function raccrocherAppel() {
+
+    clearInterval(intervalleMagic);
+
+    clearTimeout(minuterieAccueil);
+
+
+    if ("speechSynthesis" in window) {
+
+      window.speechSynthesis.cancel();
+
+    }
+
+
+    document.getElementById(
+      "layer-calling"
+    ).style.display = "none";
+
+
+    document.getElementById(
+      "magic-box"
+    ).style.display = "none";
+
+
+    document.getElementById(
+      "welcome-message"
+    ).classList.remove("visible");
+
+  }
+
+</script>
 
 </body>
 </html>
+```
