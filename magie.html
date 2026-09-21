@@ -31,12 +31,9 @@
         .bottom-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: auto; }
         .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
-        .ios-vibrator { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
-
-    <input type="checkbox" class="ios-vibrator" id="appleVibeTrigger">
 
     <div class="phone-screen" id="mainScreen">
         <div class="status-bar"><div>12:35 PM</div><div>📶 🔋 97%</div></div>
@@ -46,7 +43,6 @@
         </div>
         <div class="actions-grid">
             <div class="btn-action"><div class="icon-circle">👤</div><div class="btn-label">Contact</div></div>
-            <!-- LE BOUTON DE DÉMARRAGE SÉCURISÉ -->
             <div class="btn-action" id="addCallBtn" onclick="demarrerTour()">
                 <div class="icon-circle" style="background-color: rgba(255,255,255,0.3);">➕</div>
                 <div class="btn-label" style="font-weight: bold;">Add Call</div>
@@ -72,14 +68,38 @@
         let boucleInterval = null;
         let prenomSpectateur = "mon cher ami"; 
 
-        // Fonction de vibration haptique iOS
-        function executerVibrationForcee() {
-            const trigger = document.getElementById('appleVibeTrigger');
-            if (trigger) { trigger.click(); }
-            if (navigator.vibrate) { navigator.vibrate(100); }
+        async function verifierFichierPrenom() {
+            try {
+                let reponse = await fetch('spect.txt?t=' + new Date().getTime());
+                if (reponse.ok) {
+                    let texte = await reponse.text();
+                    if(texte.trim() !== "") { prenomSpectateur = texte.trim(); }
+                }
+            } catch (err) { }
+        }
+        verifierFichierPrenom();
+
+        // GÉNÉRATEUR DE MICRO-BIP SECRET DANS VOS ÉCOUTEURS (Contourne le blocage d'Apple)
+        function emettreBipSecret() {
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, ctx.currentTime); // Son aigu mais discret
+                
+                // Le son s'éteint au bout de 0.05 seconde (un simple cliquetis)
+                gain.gain.setValueAtTime(0.08, ctx.currentTime); // Volume très bas, parfait pour écouteurs
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.06);
+            } catch(e) {}
         }
 
-        // Activation forcée du moteur audio d'Apple au moment du clic
         function forcerMoteurAudioApple() {
             let declencheurMuet = new SpeechSynthesisUtterance("");
             window.speechSynthesis.speak(declencheurMuet);
@@ -109,7 +129,8 @@
             let volumeMoyen = somme / dataArray.length / 255;
 
             if (volumeMoyen > SEUIL_BRUIT) {
-                executerVibrationForcee();
+                emettreBipSecret(); // Petit clic de confirmation de réception
+                
                 if (etape === 1) {
                     clearInterval(boucleInterval);
                     valeurChoisie = valeurs[indexActuel]; 
@@ -127,36 +148,31 @@
 
         function demarrerTour() {
             if (etape > 0) return;
-            
-            // ÉTAPE CRUCIALE POUR IPHONE : On débloque l'audio sur le clic du doigt
             forcerMoteurAudioApple();
             
             document.getElementById('addCallBtn').style.opacity = "0.6";
             document.getElementById('statutAppel').innerText = "00:01"; 
             
-            // Lance la récupération du prénom en parallèle
             fetch('spect.txt?t=' + new Date().getTime())
                 .then(res => res.ok ? res.text() : "mon cher ami")
                 .then(texte => {
                     if(texte.trim() !== "") prenomSpectateur = texte.trim();
                     
-                    // Une fois le texte validé, on ouvre le micro et on démarre les vibrations
                     initialiserMicro().then(() => {
                         etape = 1;
                         indexActuel = 0;
-                        executerVibrationForcee(); 
+                        emettreBipSecret(); // Premier bip immédiat (L'As)
 
                         boucleInterval = setInterval(() => {
                             indexActuel++;
                             if (indexActuel >= valeurs.length) indexActuel = 0;
-                            executerVibrationForcee();
+                            emettreBipSecret(); // Un bip toutes les 1.2 seconde
                         }, 1200); 
                     });
                 }).catch(() => {
-                    // Secours si internet coupe
                     initialiserMicro().then(() => {
-                        etape = 1; indexActuel = 0; executerVibrationForcee();
-                        boucleInterval = setInterval(() => { indexActuel++; if (indexActuel >= valeurs.length) indexActuel = 0; executerVibrationForcee(); }, 1200);
+                        etape = 1; indexActuel = 0; emettreBipSecret();
+                        boucleInterval = setInterval(() => { indexActuel++; if (indexActuel >= valeurs.length) indexActuel = 0; emettreBipSecret(); }, 1200);
                     });
                 });
         }
@@ -164,10 +180,10 @@
         function lancerBoucleFamilles() {
             if (etape !== 2) return;
             indexActuel = 0;
-            executerVibrationForcee();
+            emettreBipSecret();
             boucleInterval = setInterval(() => {
                 indexActuel++; if (indexActuel >= 4) indexActuel = 0;
-                executerVibrationForcee();
+                emettreBipSecret();
             }, 1200); 
         }
 
@@ -179,11 +195,7 @@
                 setTimeout(() => {
                     parler(`La carte que tu as choisie... c'est le ${valeurChoisie} de ${familleChoisie}, c'est bien ça?`);
                 }, 3000);
-            }, 3500);
-        }
-    </script>
-</body>
-</html>
+
 
             
 
