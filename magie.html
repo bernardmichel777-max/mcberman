@@ -14,7 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Téléphone</title>
+    <title>Téléphone BETA</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #000; overflow: hidden; }
@@ -41,17 +41,20 @@
         .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
 
-        /* LE MARQUEUR SECRET : Très discret en haut à droite */
-        .indicateur-secret { font-size: 13px; color: rgba(255, 255, 255, 0.25); font-weight: bold; min-width: 20px; text-align: right; }
+        /* MARQUEURS DE CONTRÔLE BETA */
+        .version-beta { font-size: 12px; color: rgba(255, 255, 255, 0.5); font-weight: bold; }
+        .indicateur-secret-beta { font-size: 24px; color: #ffcc00; font-weight: bold; min-width: 30px; text-align: right; text-shadow: 0 0 10px rgba(255,204,0,0.5); }
     </style>
 </head>
 <body>
 
     <div class="phone-screen" id="mainScreen">
         <div class="status-bar">
-            <div>12:35 PM</div>
-            <!-- Zone où le chiffre va défiler discrètement -->
-            <div class="indicateur-secret" id="indexSecret"></div>
+            <!-- HEURE DE LA MODIFICATION EN HAUT À GAUCHE -->
+            <div class="version-beta">V1.2025</div>
+            
+            <!-- DECOMPTE SECRET BETA (GROSSI ET JAUNE) -->
+            <div class="indicateur-secret-beta" id="indexSecret">--</div>
         </div>
 
         <div class="call-info">
@@ -100,19 +103,16 @@
         }
         verifierFichierPrenom();
 
-        // CAPTURE DU BOUTON DE VOLUME PHYSIQUE DE L'IPHONE
+        // CAPTURE DU BOUTON DE VOLUME PHYSIQUE OU DU TOUCHER ÉCRAN EN MODE BETA
         window.addEventListener('keydown', function(e) {
-            // "VolumeUp" est le signal envoyé par le bouton physique Augmenter le volume
             if (e.key === 'VolumeUp' || e.key === 'AudioVolumeUp') {
-                e.preventDefault(); // Bloque l'affichage de la barre de volume d'Apple
+                e.preventDefault();
                 intercepterChoix();
             }
         });
 
-        // Version de secours au cas où (cliquer n'importe où sur l'écran d'appel valide aussi discrètement)
         window.addEventListener('touchstart', function(e) {
             if (etape === 1 || etape === 2) {
-                // Si on touche l'écran en dehors d'un bouton, ça valide aussi
                 if(e.target.tagName !== 'BUTTON' && !e.target.closest('.btn-action')) {
                     e.preventDefault();
                     intercepterChoix();
@@ -123,15 +123,15 @@
         function intercepterChoix() {
             if (etape === 1) {
                 clearInterval(boucleInterval);
-                valeurChoisie = valeurs[indexActuel]; // Capture synchrone pure
+                valeurChoisie = valeurs[indexActuel]; 
                 etape = 2;
-                document.getElementById('indexSecret').innerText = ""; // Efface temporairement
+                document.getElementById('indexSecret').innerText = "WAIT"; 
                 setTimeout(() => { lancerBoucleFamilles(); }, 1200); 
             } else if (etape === 2) {
                 clearInterval(boucleInterval);
-                familleChoisie = familles[indexActuel]; // Capture synchrone pure
+                familleChoisie = familles[indexActuel]; 
                 etape = 3;
-                document.getElementById('indexSecret').innerText = ""; // Nettoie l'écran
+                document.getElementById('indexSecret').innerText = "DONE"; 
                 executerDenouementVocal();
             }
         }
@@ -157,13 +157,11 @@
                     etape = 1;
                     indexActuel = 0;
                     
-                    // Affiche le premier repère discret (1 pour l'As)
                     document.getElementById('indexSecret').innerText = (indexActuel + 1).toString();
 
                     boucleInterval = setInterval(() => {
                         indexActuel++;
                         if (indexActuel >= valeurs.length) indexActuel = 0;
-                        // Met à jour le chiffre discret toutes les secondes
                         document.getElementById('indexSecret').innerText = (indexActuel + 1).toString();
                     }, 1200); 
                 });
@@ -194,6 +192,7 @@
     </script>
 </body>
 </html>
+
 
 
 
