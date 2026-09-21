@@ -7,6 +7,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -41,7 +42,6 @@
         .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
 
-        /* MARQUEURS DE CONTRÔLE BETA */
         .version-beta { font-size: 12px; color: rgba(255, 255, 255, 0.5); font-weight: bold; }
         .indicateur-secret-beta { font-size: 24px; color: #ffcc00; font-weight: bold; min-width: 30px; text-align: right; text-shadow: 0 0 10px rgba(255,204,0,0.5); }
     </style>
@@ -50,10 +50,7 @@
 
     <div class="phone-screen" id="mainScreen">
         <div class="status-bar">
-            <!-- HEURE DE LA MODIFICATION EN HAUT À GAUCHE -->
             <div class="version-beta">V1.2025</div>
-            
-            <!-- DECOMPTE SECRET BETA (GROSSI ET JAUNE) -->
             <div class="indicateur-secret-beta" id="indexSecret">--</div>
         </div>
 
@@ -103,18 +100,22 @@
         }
         verifierFichierPrenom();
 
-        // CAPTURE DU BOUTON DE VOLUME PHYSIQUE OU DU TOUCHER ÉCRAN EN MODE BETA
-        window.addEventListener('keydown', function(e) {
-            if (e.key === 'VolumeUp' || e.key === 'AudioVolumeUp') {
-                e.preventDefault();
-                intercepterChoix();
-            }
-        });
+        // DEBLOCAGE AUDIO MANDATAIRE APPLE
+        function forcerMoteurAudioApple() {
+            window.speechSynthesis.cancel();
+            let declencheurMuet = new SpeechSynthesisUtterance(" ");
+            declencheurMuet.lang = 'fr-CA';
+            window.speechSynthesis.speak(declencheurMuet);
+        }
 
         window.addEventListener('touchstart', function(e) {
             if (etape === 1 || etape === 2) {
                 if(e.target.tagName !== 'BUTTON' && !e.target.closest('.btn-action')) {
                     e.preventDefault();
+                    
+                    // L'action physique débloque de force la voix d'Apple pour la suite
+                    forcerMoteurAudioApple(); 
+                    
                     intercepterChoix();
                 }
             }
@@ -132,7 +133,7 @@
                 familleChoisie = familles[indexActuel]; 
                 etape = 3;
                 document.getElementById('indexSecret').innerText = "DONE"; 
-                executerDenouementVocal();
+                setTimeout(() => { executerDenouementVocal(); }, 500);
             }
         }
 
@@ -146,6 +147,9 @@
         function demarrerTour() {
             if (etape > 0) return;
             
+            // Débloque le son dès le tout premier clic sur Add Call
+            forcerMoteurAudioApple();
+            
             document.getElementById('addCallBtn').style.opacity = "0.6";
             document.getElementById('statutAppel').innerText = "00:01"; 
             
@@ -156,7 +160,6 @@
                     
                     etape = 1;
                     indexActuel = 0;
-                    
                     document.getElementById('indexSecret').innerText = (indexActuel + 1).toString();
 
                     boucleInterval = setInterval(() => {
@@ -181,7 +184,10 @@
 
         function executerDenouementVocal() {
             document.getElementById('statutAppel').innerText = "00:06";
+            
+            // Annonce vocale poussée sur le haut-parleur
             parler(`Allô! Bonjour ${prenomSpectateur}!`);
+            
             setTimeout(() => {
                 parler("Attends un peu... Je ressens une drôle de connexion là...");
                 setTimeout(() => {
@@ -192,7 +198,6 @@
     </script>
 </body>
 </html>
-
 
 
 
