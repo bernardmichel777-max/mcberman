@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Téléphone BETA V3</title>
+    <title>Téléphone BETA V4</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #000; overflow: hidden; }
@@ -27,7 +27,8 @@
         .btn-action:active .icon-circle { background-color: rgba(255, 255, 255, 0.4); }
         .btn-label { font-size: 13px; color: rgba(255, 255, 255, 0.9); }
         .bottom-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: auto; }
-        .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; }
+        .btn-hangup { width: 72px; height: 72px; background-color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 32px; color: white; transform: rotate(135deg); margin: 0 auto; cursor: pointer; }
+        .btn-hangup:active { background-color: #b5221a; }
         .bottom-side-icon { font-size: 24px; color: rgba(255, 255, 255, 0.8); width: 40px; text-align: center; }
         .version-beta { font-size: 12px; color: rgba(255, 255, 255, 0.5); font-weight: bold; }
         .indicateur-secret-beta { font-size: 24px; color: #ffcc00; font-weight: bold; min-width: 30px; text-align: right; }
@@ -37,8 +38,8 @@
 
     <div class="phone-screen" id="mainScreen">
         <div class="status-bar">
-            <!-- NOTRE BALISE DE SUIVI BETA -->
-            <div class="version-beta">V1.2035</div>
+            <!-- LE MARQUEUR BETA POUR LE TEST DE CE SOIR -->
+            <div class="version-beta">V1.2040</div>
             <div class="indicateur-secret-beta" id="indexSecret">--</div>
         </div>
 
@@ -61,7 +62,8 @@
 
         <div class="bottom-controls">
             <div class="bottom-side-icon">🔊</div>
-            <button class="btn-hangup">📞</button>
+            <!-- CE BOUTON ROUGE VA DEBLOQUER LA VOIX D'APPLE SUR SCÈNE -->
+            <button class="btn-hangup" onclick="declencherDenouementMagique()">📞</button>
             <div class="bottom-side-icon">⣿</div>
         </div>
     </div>
@@ -76,9 +78,6 @@
         let indexActuel = 0;
         let boucleInterval = null;
         let prenomSpectateur = "mon cher ami"; 
-
-        // Lecteur multimédia natif (type YouTube)
-        let audioFinal = new Audio();
 
         async function verifierFichierPrenom() {
             try {
@@ -95,10 +94,6 @@
             if (etape === 1 || etape === 2) {
                 if(e.target.tagName !== 'BUTTON' && !e.target.closest('.btn-action')) {
                     e.preventDefault();
-                    
-                    // PREPARATION SECRÈTE DE L'AUDIO : On charge l'adresse vide pour obtenir les droits d'Apple
-                    audioFinal.play().catch(()=>{});
-                    
                     intercepterChoix();
                 }
             }
@@ -116,21 +111,18 @@
                 familleChoisie = familles[indexActuel]; 
                 etape = 3;
                 document.getElementById('indexSecret').innerText = "DONE"; 
-                
-                // Pré-génération immédiate de la piste sonore avant la fin du timer
-                let texteARaconter = `Allo! Bonjour ${prenomSpectateur}! Je ressens votre carte. C'est le ${valeurChoisie} de ${familleChoisie}.`;
-                audioFinal.src = "https://google.com" + encodeURIComponent(texteARaconter);
-                
-                // Lancement du dénouement
-                setTimeout(() => { executerDenouementAudio(); }, 500);
             }
+        }
+
+        function parler(texte) {
+            let parole = new SpeechSynthesisUtterance(texte);
+            parole.lang = 'fr-CA'; 
+            parole.rate = 0.90;    
+            window.speechSynthesis.speak(parole);
         }
 
         function demarrerTour() {
             if (etape > 0) return;
-            
-            // Premier déverrouillage audio système sur le clic initial
-            audioFinal.play().catch(()=>{});
             
             document.getElementById('addCallBtn').style.opacity = "0.6";
             document.getElementById('statutAppel').innerText = "00:01"; 
@@ -163,14 +155,28 @@
             }, 1200); 
         }
 
-        function executerDenouementAudio() {
+        // CETTE FONCTION S'ACTIVE SUR LE CLIC DU BOUTON ROUGE
+        function declencherDenouementMagique() {
+            // Sécurité : On n'autorise le son que si les choix sont bien faits
+            if (etape !== 3) return;
+            
             document.getElementById('statutAppel').innerText = "00:06";
-            // Lecture automatique, débloquée de force par les interactions du pouce !
-            audioFinal.play();
+            
+            // 1. Annonce vocale forcée par le geste
+            parler(`Allô! Bonjour ${prenomSpectateur}!`);
+            
+            // 2. Hésitation théâtrale de 3.5 secondes
+            setTimeout(() => {
+                parler("Attends un peu... Je ressens une drôle de connexion là...");
+                setTimeout(() => {
+                    parler(`La carte que tu as choisie... c'est le ${valeurChoisie} de ${familleChoisie}, c'est bien ça?`);
+                }, 3000);
+            }, 3500);
         }
     </script>
 </body>
 </html>
+
 
 
 
